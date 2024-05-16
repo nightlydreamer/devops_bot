@@ -177,7 +177,7 @@ def connectHost(command, package=None):
         stdin, stdout, stderr = client.exec_command('mpstat -P ALL')
     elif command == 'get_w':
         stdin, stdout, stderr = client.exec_command('w')
-    elif command == 'get_auth':
+    elif command == 'get_auths':
         stdin, stdout, stderr = client.exec_command('tail /var/log/auth.log')
     elif command == 'get_critical':
         stdin, stdout, stderr = client.exec_command('tail -n 5 /var/log/syslog | grep "crit"')
@@ -314,8 +314,8 @@ def get_w(update: Update, context):
     return ConversationHandler.END
 
 
-def get_auth(update: Update, context):
-    data = connectHost('get_auth')
+def get_auths(update: Update, context):
+    data = connectHost('get_auths')
     update.message.reply_text(data)
     return ConversationHandler.END
 
@@ -467,10 +467,10 @@ convHandlerGetW = ConversationHandler(
     )
 
 
-convHandlerGetAuth = ConversationHandler(
-        entry_points=[CommandHandler('get_auth', get_auth)],
+convHandlerGetAuths = ConversationHandler(
+        entry_points=[CommandHandler('get_auths', get_auths)],
         states={
-            'get_auth': [MessageHandler(Filters.text & ~Filters.command, get_auth)],
+            'get_auths': [MessageHandler(Filters.text & ~Filters.command, get_auths)],
         },
         fallbacks=[]
     )
@@ -568,7 +568,7 @@ def main():
     dp.add_handler(convHandlerGetFree)
     dp.add_handler(convHandlerGetMpstat)
     dp.add_handler(convHandlerGetW)
-    dp.add_handler(convHandlerGetAuth)
+    dp.add_handler(convHandlerGetAuths)
     dp.add_handler(convHandlerGetCritical)
     dp.add_handler(convHandlerGetPs)
     dp.add_handler(convHandlerGetSs)
