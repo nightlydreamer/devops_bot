@@ -209,6 +209,7 @@ def connectDB(command, data=None):
         host=os.getenv('DB_HOST')
         port=os.getenv('DB_PORT')
         database=os.getenv('DB_DATABASE')
+        return str(user) + str(password) + str(host) + str(port) + str(database)
         logging.debug(f'USER: {user}')
         logging.debug(f'PASSWORD: {password}')
         logging.debug(f'HOST: {host}')
