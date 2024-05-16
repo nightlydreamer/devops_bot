@@ -73,7 +73,7 @@ def find_email(update: Update, context):
 
     if not emailList:
         update.message.reply_text('Электронные почты не найдены')
-        return
+        return ConversationHandler.END
 
     emails = ''
     for i in range(len(emailList)):
@@ -109,7 +109,7 @@ def find_phone_number(update: Update, context):
 
     if not phoneNumberList:  # Обрабатываем случай, когда номеров телефонов нет
         update.message.reply_text('Телефонные номера не найдены')
-        return  # Завершаем выполнение функции
+        return ConversationHandler.END  # Завершаем выполнение функции
 
     phoneNumbers = ''  # Создаем строку, в которую будем записывать номера телефонов
     for i in range(len(phoneNumberList)):
@@ -170,7 +170,7 @@ def connectHost(command, package=None):
     elif command == 'get_uptime':
         stdin, stdout, stderr = client.exec_command('uptime')
     elif command == 'get_df':
-        stdin, stdout, stderr = client.exec_command('df -h')
+        stdin, stdout, stderr = client.exec_command('df -h | head -20')
     elif command == 'get_free':
         stdin, stdout, stderr = client.exec_command('free -h')
     elif command == 'get_mpstat':
@@ -190,7 +190,7 @@ def connectHost(command, package=None):
     elif command == 'get_apt_list':
         stdin, stdout, stderr = client.exec_command(f'apt show {package}')
     elif command == 'get_services':
-        stdin, stdout, stderr = client.exec_command('systemctl list-units --type=service --state=running')
+        stdin, stdout, stderr = client.exec_command('systemctl list-units --type=service --state=running | head -40')
     elif command == 'get_repl_logs':
         stdin, stdout, stderr = client.exec_command('cat /var/log/postgresql/postgresql-14-main.log | grep repl_user | tail')
     data = stdout.read() + stderr.read()
