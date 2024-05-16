@@ -73,7 +73,7 @@ def find_email(update: Update, context):
 
     if not emailList:
         update.message.reply_text('Электронные почты не найдены')
-        return
+        return ConversationHandler.END
 
     emails = ''
     for i in range(len(emailList)):
@@ -109,7 +109,7 @@ def find_phone_number(update: Update, context):
 
     if not phoneNumberList:  # Обрабатываем случай, когда номеров телефонов нет
         update.message.reply_text('Телефонные номера не найдены')
-        return  # Завершаем выполнение функции
+        return ConversationHandler.END  # Завершаем выполнение функции
 
     phoneNumbers = ''  # Создаем строку, в которую будем записывать номера телефонов
     for i in range(len(phoneNumberList)):
@@ -170,14 +170,14 @@ def connectHost(command, package=None):
     elif command == 'get_uptime':
         stdin, stdout, stderr = client.exec_command('uptime')
     elif command == 'get_df':
-        stdin, stdout, stderr = client.exec_command('df -h')
+        stdin, stdout, stderr = client.exec_command('df -h | head -20')
     elif command == 'get_free':
         stdin, stdout, stderr = client.exec_command('free -h')
     elif command == 'get_mpstat':
         stdin, stdout, stderr = client.exec_command('mpstat -P ALL')
     elif command == 'get_w':
         stdin, stdout, stderr = client.exec_command('w')
-    elif command == 'get_auth':
+    elif command == 'get_auths':
         stdin, stdout, stderr = client.exec_command('tail /var/log/auth.log')
     elif command == 'get_critical':
         stdin, stdout, stderr = client.exec_command('tail -n 5 /var/log/syslog | grep "crit"')
@@ -190,7 +190,7 @@ def connectHost(command, package=None):
     elif command == 'get_apt_list':
         stdin, stdout, stderr = client.exec_command(f'apt show {package}')
     elif command == 'get_services':
-        stdin, stdout, stderr = client.exec_command('systemctl list-units --type=service --state=running')
+        stdin, stdout, stderr = client.exec_command('systemctl list-units --type=service --state=running | head -40')
     elif command == 'get_repl_logs':
 #        stdin, stdout, stderr = client.exec_command('cat /var/log/postgresql/postgresql-15-main.log | grep repl_user | tail')
 #        stdin, stdout, stderr = client.exec_command('docker logs devops_bot_db_1 2>&1 | grep -i "replica"')
@@ -328,8 +328,8 @@ def get_w(update: Update, context):
     return ConversationHandler.END
 
 
-def get_auth(update: Update, context):
-    data = connectHost('get_auth')
+def get_auths(update: Update, context):
+    data = connectHost('get_auths')
     update.message.reply_text(data)
     return ConversationHandler.END
 
@@ -481,10 +481,10 @@ convHandlerGetW = ConversationHandler(
     )
 
 
-convHandlerGetAuth = ConversationHandler(
-        entry_points=[CommandHandler('get_auth', get_auth)],
+convHandlerGetAuths = ConversationHandler(
+        entry_points=[CommandHandler('get_auths', get_auths)],
         states={
-            'get_auth': [MessageHandler(Filters.text & ~Filters.command, get_auth)],
+            'get_auths': [MessageHandler(Filters.text & ~Filters.command, get_auths)],
         },
         fallbacks=[]
     )
@@ -582,7 +582,7 @@ def main():
     dp.add_handler(convHandlerGetFree)
     dp.add_handler(convHandlerGetMpstat)
     dp.add_handler(convHandlerGetW)
-    dp.add_handler(convHandlerGetAuth)
+    dp.add_handler(convHandlerGetAuths)
     dp.add_handler(convHandlerGetCritical)
     dp.add_handler(convHandlerGetPs)
     dp.add_handler(convHandlerGetSs)
