@@ -20,9 +20,8 @@ services:
       DB_PORT: ${DB_PORT}
     depends_on:
       - db
-#    networks:
-#      custom_network:
-#        ipv4_address: 172.20.0.22
+    volumes:
+      - db_logs:/app/logs
   db:
     image: db_image
     build:
@@ -44,8 +43,12 @@ services:
           -c max_replication_slots=10
           -c hot_standby_feedback=on
           -c log_replication_commands=on
+          -c log_directory='/var/log/postgresql'
+          -c log_filename='postgresql.log'
+          -c logging_collector=on
     volumes:
       - ./db_files:/var/lib/postgresql/data
+      - db_logs:/var/log/postgresql
 
   db_repl:
     image: db_repl_image
@@ -82,3 +85,5 @@ services:
 #    ipam:
 #      config:
 #        - subnet: 172.20.0.0/16
+volumes:
+  db_logs:

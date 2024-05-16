@@ -14,6 +14,7 @@ from psycopg2 import Error
 
 from uuid import uuid4
 
+from pathlib import Path
 #found_dotenv = find_dotenv()
 #load_dotenv(found_dotenv)
 
@@ -181,7 +182,7 @@ def connectHost(command, package=None):
     elif command == 'get_critical':
         stdin, stdout, stderr = client.exec_command('tail -n 5 /var/log/syslog | grep "crit"')
     elif command == 'get_ps':
-        stdin, stdout, stderr = client.exec_command('ps')
+        stdin, stdout, stderr = client.exec_command('ps | head -20')
     elif command == 'get_ss':
         stdin, stdout, stderr = client.exec_command('ss -s')
     elif command == 'get_apt_list_none':
@@ -192,7 +193,20 @@ def connectHost(command, package=None):
         stdin, stdout, stderr = client.exec_command('systemctl list-units --type=service --state=running')
     elif command == 'get_repl_logs':
 #        stdin, stdout, stderr = client.exec_command('cat /var/log/postgresql/postgresql-15-main.log | grep repl_user | tail')
-        stdin, stdout, stderr = client.exec_command('docker logs devops_bot_db_1 2>&1 | grep -i "replica"')
+#        stdin, stdout, stderr = client.exec_command('docker logs devops_bot_db_1 2>&1 | grep -i "replica"')
+        log_file = Path('/app/logs') / 'postgresql.log'
+        f = open(log_file)
+        s = f.readlines()
+        result = ''
+        count = 0
+        for line in s:
+            if line.lower().count('replica') > 0:
+                result += str(line)
+                count += 1
+                if count == 20:
+                    return result
+        logging.debug('LOGS: {result}')
+        return result
     data = stdout.read() + stderr.read()
     client.close()
     data = str(data).replace('\\n', '\n').replace('\\t', '\t')[2:-1]
