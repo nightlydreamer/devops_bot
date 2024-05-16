@@ -209,7 +209,6 @@ def connectDB(command, data=None):
         host=os.getenv('DB_HOST')
         port=os.getenv('DB_PORT')
         database=os.getenv('DB_DATABASE')
-        return str(user) + str(password) + str(host) + str(port) + str(database)
         logging.debug(f'USER: {user}')
         logging.debug(f'PASSWORD: {password}')
         logging.debug(f'HOST: {host}')
@@ -263,14 +262,13 @@ def connectDB(command, data=None):
                 data = "Произошла ошибке при загрузке данных"
     except (Exception, Error) as error:
         logging.error("Ошибка при работе с PostgreSQL: %s", error)
-        return error
     finally:
         if connection is not None:
             cursor.close()
             connection.close()
             logging.info("Соединение с PostgreSQL закрыто")
         else:
-            return "1. Произошла ошибка при подключении к базе данных"
+            return "Произошла ошибка при подключении к базе данных"
     return data
 
 
