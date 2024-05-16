@@ -262,6 +262,7 @@ def connectDB(command, data=None):
                 data = "Произошла ошибке при загрузке данных"
     except (Exception, Error) as error:
         logging.error("Ошибка при работе с PostgreSQL: %s", error)
+        return error
     finally:
         if connection is not None:
             cursor.close()
