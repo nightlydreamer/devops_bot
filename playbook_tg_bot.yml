@@ -85,7 +85,7 @@
   - name: Create user for replication
     become_user: postgres
     become: yes
-    command: psql -c "CREATE ROLE '{{ DB_REPL_USER }}' WITH REPLICATION LOGIN PASSWORD '{{ DB_REPL_PASSWORD }}';"
+    command: psql -c "CREATE ROLE {{ DB_REPL_USER }} WITH REPLICATION LOGIN PASSWORD '{{ DB_REPL_PASSWORD }}';"
     ignore_errors: true
 
   - name: Create replication slot
