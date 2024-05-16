@@ -37,6 +37,13 @@
       group: postgres
       mode: '774'
 
+  - name: Drop database if exists
+    become_user: postgres
+    become: yes
+    community.postgresql.postgresql_db:
+      name: "{{ DB_DATABASE }}"
+      state: absent
+
   - name: Create database
     become_user: postgres
     become: yes
@@ -86,6 +93,14 @@
       db: "{{ DB_DATABASE }}"
       name: replication_slot
 
+  - name: Change password
+    become_user: postgres
+    become: yes
+    command: psql -c "ALTER ROLE {{ DB_USER }} PASSWORD '{{ DB_PASSWORD }}';"
+    environment:
+        DB_PASSWORD: "{{ DB_PASSWORD}}"
+        DB_USER: "{{ DB_USER }}"
+
 - hosts: db_repl
   become: yes
   tasks:
@@ -108,7 +123,7 @@
       name: psycopg2-binary
 
   - name: Change postgresql.conf
-    ansible.builtin.shell: echo "listen_addresses = '*'"
+    ansible.builtin.shell: echo "listen_addresses = '*'" >> /etc/postgresql/14/main/postgresql.conf
 
   - name: Stop postgresql
     ansible.builtin.service:
@@ -118,11 +133,6 @@
   - name: Delete files
     ansible.builtin.shell: rm -rf /var/lib/postgresql/14/main/*
 
-  - name: Start postgresql
-    ansible.builtin.service:
-      name: postgresql
-      state: started
-
   - name: Start replication
     become_user: postgres
     become: yes
@@ -130,6 +140,10 @@
     environment:
         PGPASSWORD: "{{ DB_REPL_PASSWORD }}"
 
+  - name: Start postgresql
+    ansible.builtin.service:
+      name: postgresql
+      state: started
 
 - hosts: bot
   become: yes
