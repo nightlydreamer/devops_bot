@@ -1,0 +1,47 @@
+[bot]
+bot ansible_host=10.149.4.48 ansible_user=ansible ansible_password=ansible
+
+[db]
+db ansible_host=10.149.4.48 ansible_user=ansible ansible_password=ansible
+
+[db_repl]
+db_repl ansible_host=10.149.4.47 ansible_user=ansible ansible_password=ansible
+
+[bot:vars]
+TOKEN = 6839477991:AAFj7F15fFHJidUCoFR2lp_gvQO9K8F6HRc
+RM_HOST = 10.149.4.48
+RM_PORT = 22
+RM_USER = ansible
+RM_PASSWORD = ansible
+DB_USER = postgres
+DB_PASSWORD = 1234
+DB_HOST = 10.149.4.48
+DB_PORT = 5432
+DB_DATABASE = bot
+DB_REPL_USER = repl_user
+DB_REPL_PASSWORD = 1234
+DB_REPL_HOST = 10.149.4.47
+DB_REPL_PORT = 5432
+
+[db:vars]
+DB_USER = postgres
+DB_PASSWORD = 1234
+DB_HOST = 10.149.4.48
+DB_PORT = 5432
+DB_DATABASE = bot
+DB_REPL_USER = repl_user
+DB_REPL_PASSWORD = 1234
+DB_REPL_HOST = 10.149.4.47
+DB_REPL_PORT = 5432
+allow_world_readable_tmpfiles = true
+
+[db_repl:vars]
+DB_USER = postgres
+DB_PASSWORD = 1234
+DB_HOST = 10.149.4.48
+DB_PORT = 5432
+DB_DATABASE = bot
+DB_REPL_USER = repl_user
+DB_REPL_PASSWORD = 1234
+DB_REPL_HOST = 10.149.4.47
+DB_REPL_PORT = 5432

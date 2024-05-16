@@ -1,0 +1,178 @@
+- hosts: db
+  become: yes
+
+  tasks:
+  - name: Install requirements
+    ansible.builtin.apt:
+      name:
+        - python3
+        - python3-pip
+      state: present
+      update_cache: yes
+
+  - name: Install pip packages
+    ansible.builtin.pip:
+      name: psycopg2-binary
+
+  - name: postgresql.conf
+    ansible.builtin.template:
+      src: postgresql.conf
+      dest: /etc/postgresql/14/main/postgresql.conf
+
+  - name: pg_hba.conf
+    ansible.builtin.template:
+      src: pg_hba.conf
+      dest: /etc/postgresql/14/main/pg_hba.conf
+
+  - name: Restart postgresql
+    ansible.builtin.service:
+      name: postgresql
+      state: restarted
+
+  - name: Create directory for replication
+    ansible.builtin.file:
+      path: /oracle/pg_data/archive/
+      state: directory
+      owner: postgres
+      group: postgres
+      mode: '774'
+
+  - name: Create database
+    become_user: postgres
+    become: yes
+    community.postgresql.postgresql_db:
+      name: "{{ DB_DATABASE }}"
+      state: present
+
+  - name: Create table for emails
+    become_user: postgres
+    become: yes
+    community.postgresql.postgresql_table:
+      name: emails
+      db: "{{ DB_DATABASE }}"
+      columns:
+        - id int primary key generated always as identity
+        - email varchar(30)
+
+  - name: Create table for phones
+    become_user: postgres
+    become: yes
+    community.postgresql.postgresql_table:
+      name: phones
+      db: "{{ DB_DATABASE }}"
+      columns:
+        - id int primary key generated always as identity
+        - phone varchar(20)
+
+  - name: Insert values to tables
+    become_user: postgres
+    become: yes
+    postgresql_query:
+      db: "{{ DB_DATABASE }}"
+      query:
+        - INSERT INTO emails (email) VALUES ('test@mail.ru'), ('alyona1234@gmail.net')
+        - INSERT INTO phones (phone) VALUES ('+79012345677'), ('+79999992233')
+
+  - name: Create user for replication
+    become_user: postgres
+    become: yes
+    command: psql -c "CREATE ROLE '{{ DB_REPL_USER }}' WITH REPLICATION LOGIN PASSWORD '{{ DB_REPL_PASSWORD }}';"
+    ignore_errors: true
+
+  - name: Create replication slot
+    become_user: postgres
+    become: yes
+    community.postgresql.postgresql_slot:
+      db: "{{ DB_DATABASE }}"
+      name: replication_slot
+
+- hosts: db_repl
+  become: yes
+  tasks:
+  - name: Install requirements
+    ansible.builtin.apt:
+      name:
+        - postgresql
+        - postgresql-contrib
+        - python3
+      state: present
+      update_cache: yes
+
+  - name: Install pip
+    ansible.builtin.apt:
+      name: python3-pip
+      state: present
+
+  - name: Install pip packages
+    ansible.builtin.pip:
+      name: psycopg2-binary
+
+  - name: Change postgresql.conf
+    ansible.builtin.shell: echo "listen_addresses = '*'"
+
+  - name: Stop postgresql
+    ansible.builtin.service:
+      name: postgresql
+      state: stopped
+
+  - name: Delete files
+    ansible.builtin.shell: rm -rf /var/lib/postgresql/14/main/*
+
+  - name: Start postgresql
+    ansible.builtin.service:
+      name: postgresql
+      state: started
+
+  - name: Start replication
+    become_user: postgres
+    become: yes
+    command: pg_basebackup -R --pgdata=/var/lib/postgresql/14/main --slot=replication_slot --host="{{ DB_HOST }}" --username="{{ DB_REPL_USER }}"
+    environment:
+        PGPASSWORD: "{{ DB_REPL_PASSWORD }}"
+
+
+- hosts: bot
+  become: yes
+
+  tasks:
+  - name: Install requirements
+    ansible.builtin.apt:
+      name:
+        - python3
+        - python3-pip
+        - build-essential
+        - python3-venv
+        - git
+      state: present
+      update_cache: yes
+
+  - name: Cloning repository
+    ansible.builtin.git:
+      repo: https://github.com/nightlydreamer/devops_bot.git
+      dest: /home/main
+      version: main
+
+  - name: Install pip packages
+    ansible.builtin.pip:
+      name:
+        - python-telegram-bot==13.7
+        - requests
+        - paramiko
+        - psycopg2-binary
+        - python-dotenv
+        - pathlib
+
+  - name: Run bot
+    command: python3 /home/main/bot.py
+    environment:
+        TOKEN: "{{ TOKEN }}"
+        RM_HOST: "{{ RM_HOST }}"
+        RM_PORT: "{{ RM_PORT }}"
+        RM_USER: "{{ RM_USER }}"
+        RM_PASSWORD: "{{ RM_PASSWORD }}"
+        DB_DATABASE: "{{ DB_DATABASE }}"
+        DB_PASSWORD: "{{ DB_PASSWORD}}"
+        DB_USER: "{{ DB_USER }}"
+        DB_HOST: "{{ DB_HOST }}"
+        DB_PORT: "{{ DB_PORT }}"
+
