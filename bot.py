@@ -270,7 +270,7 @@ def connectDB(command, data=None):
             connection.close()
             logging.info("Соединение с PostgreSQL закрыто")
         else:
-            return "Произошла ошибка при подключении к базе данных"
+            return "1. Произошла ошибка при подключении к базе данных"
     return data
 
 
