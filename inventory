@@ -8,7 +8,7 @@ db ansible_host=10.149.4.48 ansible_user=ansible ansible_password=ansible
 db_repl ansible_host=10.149.4.47 ansible_user=ansible ansible_password=ansible
 
 [bot:vars]
-TOKEN = 6839477991:AAFj7F15fFHJidUCoFR2lp_gvQO9K8F6HRc
+TOKEN = YOUR_TOKEN
 RM_HOST = 10.149.4.48
 RM_PORT = 22
 RM_USER = ansible
